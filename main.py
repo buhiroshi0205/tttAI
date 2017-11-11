@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import ttt
 import numpy as np
 import tensorflow as tf
@@ -47,4 +49,4 @@ for episode in range(100000):
 		label = np.concatenate((np.array(p1[1]), np.array(p2[1])))
 		data = data.astype('float32')
 		model.train_on_batch(data, label)
-	print "game %d done!" % episode
+	print("game %d done!" % episode)
