@@ -13,7 +13,7 @@ model.add(Dense(27, activation='relu'))
 model.add(Dense(27, activation='relu'))
 model.add(Dense(9, activation='softmax'))
 model.compile(loss='mean_squared_error', optimizer=SGD(lr=0.1))
-model.load_weights('model1.h5')
+model.load_weights('e_greedy.h5')
 
 num_games = input('how many games do you want to play?')
 
@@ -36,7 +36,8 @@ for episode in range(num_games):
 		turn *= -1
 	if game_state[1]*player == 1:
 		print("you win!")
-	else:
+	elif game_state[1]*player == -1:
 		print("you lose!")
+	else:
+		print("tie!")
 	print(ttt.moves)
-

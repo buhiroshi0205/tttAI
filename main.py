@@ -1,11 +1,13 @@
 from __future__ import print_function
 
-import ttt
+import ttt, random
 import numpy as np
 import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import SGD
+
+epsilon = 0.1
 
 
 model = Sequential()
@@ -25,7 +27,12 @@ for episode in range(100000):
 	while not game_state[0]:
 		board = ttt.get_board()
 		move_probs = model.predict_on_batch(np.array([board]))[0]
-		move = np.random.choice(9, p=move_probs)
+		move = 0 # is this necessary? I know it is in java but not sure for python
+		if random.random() < epsilon:
+			move = random.randint(0,8)
+		else:
+			move = np.argmax(move_probs)
+		#move = np.random.choice(9, p=move_probs)
 		if ttt.turn == 1:
 			p1[0].append(board)
 			p1[1].append(move_probs)
@@ -50,3 +57,5 @@ for episode in range(100000):
 		data = data.astype('float32')
 		model.train_on_batch(data, label)
 	print("game %d done!" % episode)
+model.save_weights('e_greedy.h5')
+print(ttt.move_seq[-100:])
