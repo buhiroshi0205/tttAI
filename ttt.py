@@ -1,89 +1,59 @@
 import numpy as np
 
-
-board = np.zeros(9)  # 0 = no piece; 1 = cross; -1 = circle
-turn = 1
-illegal_move = 0
-move_seq = []
-moves = []
-
-def initialize_game():
-	global board, turn, illegal_move, move_seq, moves
-	board = np.zeros(9)
-	turn = 1
-	illegal_move = 0
-	move_seq.append(moves)
-	moves = []
-
-def move(x):
-	global board, turn, illegal_move, moves
-	if board[x]:
-		illegal_move = turn
-	else:
-		board[x] = turn
-	turn *= -1
-	moves.append(x)
-
-def check_game():
-	global board, illegal_move
-	'''
-	sum = np.zeros(8)
-	for n in range(3):
-		sum += [board[n],board[n+3],board[n+6],board[3*n],board[3*n+1],board[3*n+2],board[3*n+n],board[2*n+2]]
-	if illegal_move:
-		return (True, -illegal_move)
-	elif 3 in sum:
-		return (True, 1)
-	elif -3 in sum:
-		return (True, -1)
-	elif not (0 in board):
-		return (True, 0)
-	else:
-		return (False, 0)
-	'''
-
-def get_board():
-	global board, turn
-	newboard = board*turn
-	return np.concatenate((newboard==1, newboard==-1, newboard==0))
-
-
 class TTT():
 
-	def __init__(self):
-		self.board = np.zeros(9)  # 0 = no piece; 1 = cross; -1 = circle
-		self.turn = 1
-		self.move_seq = []
-		self.moves = []
+	def __init__(self, storage=200000):
+		self.move_seq = np.empty((storage, 9))
+		self.episode = 0
 
-	def initialize(self):
+	def initialize_game(self, first_player):
+		self.move_seq[self.episode] = self.moves
+		self.episode += 1
 		self.board = np.zeros(9)
-		self.turn = 1
-		self.move_seq.append(moves)
-		self.moves = []
+		self.moves = np.empty(9)
+		self.turn = first_player
+		self.move_num = 0
 
 	def move(self, x):
-		if self.board[x]:
-			self.illegal_move = self.turn
+		self.board[x] = self.turn
+		moves[move_num] = x
+		if self.check_game():
+			self.winner = self.turn
+			return True
+		elif move_num == 8:
+			self.winner = 0
+			return True
 		else:
-			self.board[x] = self.turn
-		self.turn *= -1
-		self.moves.append(x)
-		self.last_move = x
+			self.turn *= -1
+			move_num += 1
+			return False
 
 	def check_game(self):
-#		if self.last_move == 0:
-#			return self.board[0] == self.board[1] == self.board[2] or self.board[0] == self.board[3] == self.board[6] or self.board[0] == self.board[4] == self.board[8]
-		sum = np.zeros(8)
-		for n in range(3):
-			sum += [board[n],board[n+3],board[n+6],board[3*n],board[3*n+1],board[3*n+2],board[3*n+n],board[2*n+2]]
-		if illegal_move:
-			return (True, -illegal_move)
-		elif 3 in sum:
-			return (True, 1)
-		elif -3 in sum:
-			return (True, -1)
-		elif not (0 in board):
-			return (True, 0)
-		else:
-			return (False, 0)
+		over     =     self.board[4] == self.board[0] == self.board[8] or self.board[4] == self.board[1] == self.board[7] or self.board[4] == self.board[2] == self.board[6] or self.board[4] == self.board[3] == self.board[5]
+		return over or self.board[0] == self.board[1] == self.board[2] or self.board[0] == self.board[3] == self.board[6] or self.board[8] == self.board[2] == self.board[5] or self.board[8] == self.board[6] == self.board[7]
+
+	def get_input_board():
+		newboard = self.board*self.turn
+		return np.concatenate((newboard==1, newboard==-1, newboard==0))
+
+
+		'''
+		if x == 0:
+			return turn == self.board[1] == self.board[2] or turn == self.board[3] == self.board[6] or turn == self.board[4] == self.board[8]
+		elif x == 1:
+			return turn == self.board[0] == self.board[2] or turn == self.board[4] == self.board[7]
+		elif x == 2:
+			return turn == self.board[1] == self.board[0] or turn == self.board[4] == self.board[6] or turn == self.board[5] == self.board[8]
+		elif x == 3:
+			return turn == self.board[0] == self.board[6] or turn == self.board[4] == self.board[5]
+		elif x == 4:
+			return turn == self.board[0] == self.board[8] or turn == self.board[1] == self.board[7] or turn == self.board[2] == self.board[6] or turn == self.board[3] == self.board[5]
+		elif x == 5:
+			return turn == self.board[3] == self.board[4] or turn == self.board[2] == self.board[8]
+		elif x == 6:
+			return turn == self.board[2] == self.board[4] or turn == self.board[0] == self.board[3] or turn == self.board[7] == self.board[8]
+		elif x == 7:
+			return turn == self.board[1] == self.board[4] or turn == self.board[6] == self.board[8]
+		elif x == 8:
+			return turn == self.board[0] == self.board[4] or turn == self.board[2] == self.board[5] or turn == self.board[6] == self.board[7]
+		;;;
