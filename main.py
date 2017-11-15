@@ -1,14 +1,53 @@
 from __future__ import print_function
 
-import ttt, random
+import random
 import numpy as np
-import tensorflow as tf
+from keras import backend as K
 from keras.models import Sequential
 from keras.layers import Dense
-from keras.optimizers import SGD
 
-epsilon = 0.1
+#EPSILON = 0.1
 
+class TTT():
+
+	def __init__(self, storage=200000):
+		self.move_seq = np.empty((storage, 9))
+		self.episode = 0
+
+	def initialize_game(self, first_player=1):
+		self.episode += 1
+		self.board = np.zeros(9)
+		self.moves = np.empty(9)
+		self.turn = first_player
+		self.move_num = 0
+
+	def move(self, x):
+		self.board[x] = self.turn
+		self.moves[self.move_num] = x
+		if self.check_game():
+			self.winner = self.turn
+		elif self.move_num == 8:
+			self.winner = 0
+		else:
+			self.turn *= -1
+			self.move_num += 1
+			return False
+		# next code only reached if game ends
+		self.move_seq[self.episode] = self.moves
+		return True
+
+	def check_game(self):
+		over     =     self.board[4] == self.board[0] == self.board[8] or self.board[4] == self.board[1] == self.board[7] or self.board[4] == self.board[2] == self.board[6] or self.board[4] == self.board[3] == self.board[5]
+		return over or self.board[0] == self.board[1] == self.board[2] or self.board[0] == self.board[3] == self.board[6] or self.board[8] == self.board[2] == self.board[5] or self.board[8] == self.board[6] == self.board[7]
+
+	def get_input_board(self):
+		newboard = self.board*self.turn
+		return np.concatenate((newboard==1, newboard==-1, newboard==0))
+
+
+
+def custom_loss(y_true, y_pred):
+	return K.square(y_true) * K.square(y_true - y_pred)
 
 model = Sequential()
 model.add(Dense(81, activation='relu', input_shape=(27,)))
@@ -16,46 +55,44 @@ model.add(Dense(81, activation='relu'))
 model.add(Dense(27, activation='relu'))
 model.add(Dense(27, activation='relu'))
 model.add(Dense(9, activation='softmax'))
-model.compile(loss='mean_squared_error', optimizer=SGD(lr=0.1))
+model.compile(loss=custom_loss, optimizer='sgd')
 
+ttt = TTT()
 
-
-for episode in range(100000):
-	p1, p2 = [[],[],[]], [[],[],[]]
+for episode in range(10000):
+	board_data = np.empty((9,27))
+	move_data = np.zeros((9, 9))
 	ttt.initialize_game()
-	game_state = ttt.check_game()
-	while not game_state[0]:
-		board = ttt.get_board()
-		move_probs = model.predict_on_batch(np.array([board]))[0]
-		move = 0 # is this necessary? I know it is in java but not sure for python
-		if random.random() < epsilon:
+	game_over = False
+	while not game_over:
+
+		# obtain policy from ANN
+		preprocessed_board = ttt.get_input_board()
+		raw_policy = model.predict_on_batch(np.array([preprocessed_board]))[0]
+		raw_policy = (ttt.board == 0) * raw_policy #removes illegal moves
+		policy = raw_policy / np.sum(raw_policy) #scales probabilities to add up to 1
+
+		# choose a move from policy
+		'''
+		if random.random() < EPSILON:
 			move = random.randint(0,8)
 		else:
-			move = np.argmax(move_probs)
-		#move = np.random.choice(9, p=move_probs)
-		if ttt.turn == 1:
-			p1[0].append(board)
-			p1[1].append(move_probs)
-			p1[2].append(move)
-		else:
-			p2[0].append(board)
-			p2[1].append(move_probs)
-			p2[2].append(move)
-		ttt.move(move)
-		game_state = ttt.check_game()
-	if game_state[1] != 0:
-		label = (1,0)
-		if game_state[1] == -1:
-			label = (0,1)
-		for i in range(len(p1[0])):
-			p1[1][i][p1[2][i]] = label[0]
-		for i in range(len(p2[0])):
-			p2[1][i][p2[2][i]] = label[1]
-		#gradient update
-		data = np.concatenate((np.array(p1[0]), np.array(p2[0])))
-		label = np.concatenate((np.array(p1[1]), np.array(p2[1])))
-		data = data.astype('float32')
-		model.train_on_batch(data, label)
-	print("game %d done!" % episode)
-model.save_weights('e_greedy.h5')
-print(ttt.move_seq[-100:])
+			move = np.argmax(policy)
+		'''
+		move = np.random.choice(9, p=policy)
+
+		# save data for RL backprop
+		board_data[ttt.move_num] = preprocessed_board
+		move_data[ttt.move_num][move] = ttt.turn
+
+		game_over = ttt.move(move)
+
+	# if someone won, gradient update
+	if ttt.winner != 0:
+		move_data *= ttt.winner
+		model.train_on_batch(board_data[:ttt.move_num+1], move_data[:ttt.move_num+1])
+
+	if (episode % 1000) == 0: print("game %d done!" % episode)
+#model.save_weights(str(input("Please specify a file name to store the ANN's weights:")))
+model.save_weights('v2test.h5')
+print(ttt.move_seq[episode-100:episode+1])

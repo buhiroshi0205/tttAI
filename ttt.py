@@ -16,16 +16,16 @@ class TTT():
 
 	def move(self, x):
 		self.board[x] = self.turn
-		moves[move_num] = x
+		self.moves[self.move_num] = x
 		if self.check_game():
 			self.winner = self.turn
 			return True
-		elif move_num == 8:
+		elif self.move_num == 8:
 			self.winner = 0
 			return True
 		else:
 			self.turn *= -1
-			move_num += 1
+			self.move_num += 1
 			return False
 
 	def check_game(self):
@@ -56,4 +56,4 @@ class TTT():
 			return turn == self.board[1] == self.board[4] or turn == self.board[6] == self.board[8]
 		elif x == 8:
 			return turn == self.board[0] == self.board[4] or turn == self.board[2] == self.board[5] or turn == self.board[6] == self.board[7]
-		;;;
+		'''
