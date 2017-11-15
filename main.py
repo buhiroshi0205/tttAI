@@ -7,17 +7,17 @@ from keras.models import Sequential
 from keras.layers import Dense
 
 #EPSILON = 0.1
+EPISODES = 1000
 
 class TTT():
 
 	def __init__(self, storage=200000):
-		self.move_seq = np.empty((storage, 9))
+		self.move_seq = np.zeros((storage, 9))
 		self.episode = 0
 
 	def initialize_game(self, first_player=1):
-		self.episode += 1
 		self.board = np.zeros(9)
-		self.moves = np.empty(9)
+		self.moves = np.full(9, -1)
 		self.turn = first_player
 		self.move_num = 0
 
@@ -34,11 +34,12 @@ class TTT():
 			return False
 		# next code only reached if game ends
 		self.move_seq[self.episode] = self.moves
+		self.episode += 1
 		return True
 
 	def check_game(self):
-		over     =     self.board[4] == self.board[0] == self.board[8] or self.board[4] == self.board[1] == self.board[7] or self.board[4] == self.board[2] == self.board[6] or self.board[4] == self.board[3] == self.board[5]
-		return over or self.board[0] == self.board[1] == self.board[2] or self.board[0] == self.board[3] == self.board[6] or self.board[8] == self.board[2] == self.board[5] or self.board[8] == self.board[6] == self.board[7]
+		over     =     0 != self.board[4] == self.board[0] == self.board[8] or 0 != self.board[4] == self.board[1] == self.board[7] or 0 != self.board[4] == self.board[2] == self.board[6] or 0 != self.board[4] == self.board[3] == self.board[5]
+		return over or 0 != self.board[0] == self.board[1] == self.board[2] or 0 != self.board[0] == self.board[3] == self.board[6] or 0 != self.board[8] == self.board[2] == self.board[5] or 0 != self.board[8] == self.board[6] == self.board[7]
 
 	def get_input_board(self):
 		newboard = self.board*self.turn
@@ -57,9 +58,9 @@ model.add(Dense(27, activation='relu'))
 model.add(Dense(9, activation='softmax'))
 model.compile(loss=custom_loss, optimizer='sgd')
 
-ttt = TTT()
+ttt = TTT(EPISODES * 2)
 
-for episode in range(10000):
+for episode in range(EPISODES):
 	board_data = np.empty((9,27))
 	move_data = np.zeros((9, 9))
 	ttt.initialize_game()
@@ -92,7 +93,7 @@ for episode in range(10000):
 		move_data *= ttt.winner
 		model.train_on_batch(board_data[:ttt.move_num+1], move_data[:ttt.move_num+1])
 
-	if (episode % 1000) == 0: print("game %d done!" % episode)
+	if (episode % 10) == 0: print("game %d done!" % episode)
 #model.save_weights(str(input("Please specify a file name to store the ANN's weights:")))
 model.save_weights('v2test.h5')
-print(ttt.move_seq[episode-100:episode+1])
+print(ttt.move_seq[EPISODES-100:EPISODES])
