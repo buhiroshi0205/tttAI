@@ -7,7 +7,7 @@ from keras.models import Sequential
 from keras.layers import Dense
 
 #EPSILON = 0.1
-EPISODES = 1000
+EPISODES = 30
 
 class TTT():
 
@@ -57,6 +57,7 @@ model.add(Dense(27, activation='relu'))
 model.add(Dense(27, activation='relu'))
 model.add(Dense(9, activation='softmax'))
 model.compile(loss=custom_loss, optimizer='sgd')
+model.load_weights('v2test.h5')
 
 ttt = TTT(EPISODES * 2)
 
@@ -93,7 +94,7 @@ for episode in range(EPISODES):
 		move_data *= ttt.winner
 		model.train_on_batch(board_data[:ttt.move_num+1], move_data[:ttt.move_num+1])
 
-	if (episode % 10) == 0: print("game %d done!" % episode)
+	if (episode % 1000) == 0: print("game %d done!" % episode)
 #model.save_weights(str(input("Please specify a file name to store the ANN's weights:")))
 model.save_weights('v2test.h5')
 print(ttt.move_seq[EPISODES-100:EPISODES])
