@@ -6,8 +6,8 @@ from keras import backend as K
 from keras.models import Sequential
 from keras.layers import Dense
 
-#EPSILON = 0.1
-EPISODES = 30
+EPSILON = 0.1
+EPISODES = 500000
 
 class TTT():
 
@@ -57,9 +57,9 @@ model.add(Dense(27, activation='relu'))
 model.add(Dense(27, activation='relu'))
 model.add(Dense(9, activation='softmax'))
 model.compile(loss=custom_loss, optimizer='sgd')
-model.load_weights('v2test.h5')
+#model.load_weights('v2test.h5')
 
-ttt = TTT(EPISODES * 2)
+ttt = TTT(EPISODES + 10)
 
 for episode in range(EPISODES):
 	board_data = np.empty((9,27))
@@ -72,16 +72,16 @@ for episode in range(EPISODES):
 		preprocessed_board = ttt.get_input_board()
 		raw_policy = model.predict_on_batch(np.array([preprocessed_board]))[0]
 		raw_policy = (ttt.board == 0) * raw_policy #removes illegal moves
-		policy = raw_policy / np.sum(raw_policy) #scales probabilities to add up to 1
+		#policy = raw_policy / np.sum(raw_policy) #scales probabilities to add up to 1
 
 		# choose a move from policy
-		'''
+		
 		if random.random() < EPSILON:
 			move = random.randint(0,8)
 		else:
 			move = np.argmax(policy)
-		'''
-		move = np.random.choice(9, p=policy)
+		
+		#move = np.random.choice(9, p=policy)
 
 		# save data for RL backprop
 		board_data[ttt.move_num] = preprocessed_board
@@ -95,6 +95,7 @@ for episode in range(EPISODES):
 		model.train_on_batch(board_data[:ttt.move_num+1], move_data[:ttt.move_num+1])
 
 	if (episode % 1000) == 0: print("game %d done!" % episode)
+	if (episode % 50000) == 49999: model.save_weights('weights_%d.h5' % (episode + 1))
 #model.save_weights(str(input("Please specify a file name to store the ANN's weights:")))
-model.save_weights('v2test.h5')
+#model.save_weights('v2test.h5')
 print(ttt.move_seq[EPISODES-100:EPISODES])
