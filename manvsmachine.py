@@ -15,7 +15,7 @@ model.add(Dense(27, activation='relu'))
 model.add(Dense(27, activation='relu'))
 model.add(Dense(9, activation='softmax'))
 model.compile(loss='mean_squared_error', optimizer='RMSprop')
-model.load_weights('weights_800000.h5')
+model.load_weights('v2test.h5')
 
 numpad_to_grid = [0,6,7,8,3,4,5,0,1,2]
 num_games = input('how many games do you want to play?')
@@ -33,8 +33,8 @@ for episode in range(num_games):
 		elif turn == -1:
 			preprocessed_board = ttt.get_input_board()
 			raw_policy = model.predict_on_batch(np.array([preprocessed_board]))[0]
-			raw_policy = (ttt.board == 0) * raw_policy #removes illegal moves
 			print(np.reshape(raw_policy, (3,3)))
+			raw_policy = (ttt.board == 0) * raw_policy #removes illegal moves
 			move = np.argmax(raw_policy)
 			game_over = ttt.move(move)
 		turn *= -1
