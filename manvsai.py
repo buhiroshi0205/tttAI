@@ -15,7 +15,7 @@ model.add(Dense(27, activation='relu'))
 model.add(Dense(27, activation='relu'))
 model.add(Dense(9, activation='softmax'))
 model.compile(loss='mean_squared_error', optimizer='RMSprop')
-model.load_weights('v2test.h5')
+model.load_weights('weights_200000.h5')
 
 numpad_to_grid = [0,6,7,8,3,4,5,0,1,2]
 num_games = input('how many games do you want to play?')
