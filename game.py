@@ -30,7 +30,7 @@ class TTT():
 
 	def check_game(self):
 		checkls = [(0,1,2), (3,4,5), (6,7,8), (0,3,6), (1,4,7), (2,5,8), (0,4,8), (2,4,6)]
-		return any(map(lambda a,b,c: 0 != self.board[a] == self.board[b] == self.board[c], checkls))
+		return any(map(lambda i: 0 != self.board[i[0]] == self.board[i[1]] == self.board[i[2]], checkls))
 
 	def get_input_board(self):
 		newboard = self.board*self.turn

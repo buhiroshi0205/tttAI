@@ -57,8 +57,7 @@ for episode in range(EPISODES):
 		# choose a move from policy
 		
 		if random.random() < EPSILON:
-			random_policy = preprocessed_board[18:].astype('float32')/(9-ttt.move_num)
-			move = np.random.choice(9, p=random_policy)
+			move = np.random.choice([i for i in range(9) if preprocessed_board[18+i]])
 		else:
 			move = np.argmax(raw_policy)
 		
